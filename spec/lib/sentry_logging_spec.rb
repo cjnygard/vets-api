@@ -65,6 +65,14 @@ shared_examples 'a sentry logger' do
     end
 
     describe '#log_exception_to_sentry' do
+      # No instances in the code of sending a log level, so just remove
+      it 'sends the exception to Sentry with a default log level of error'
+      it 'sets the extra_context for Sentry if it exists'
+      it 'sets the tags_context for Sentry if it exists'
+      it 'sends the exception message to the Rails logger'
+      it 'sends the exception message, errors and backtrace to the Rails logger for Common::Exceptions::BackendServiceException'
+      it 'handle the special case where log level is changed to :info'
+
       it 'warn logs to Rails logger' do
         expect(Rails.logger).to receive(:error).with(exception.message + '.')
         subject.log_exception_to_sentry(exception)
@@ -107,3 +115,8 @@ end
 RSpec.describe Foo do
   it_behaves_like 'a sentry logger'
 end
+
+## TODO
+# - Remove warning level after verifying sentry-raven handles it
+# - Use the methods, not sentry DSN to organize the spec
+# - Test the module -- its not a shared example. Remove shared example from application_controller
