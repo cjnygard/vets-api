@@ -112,7 +112,11 @@ gem 'will_paginate'
 gem 'zero_downtime_migrations'
 
 group :development do
+  gem 'attractor'
+  gem 'attractor-ruby'
   gem 'benchmark-ips'
+  gem 'churn'
+  gem 'flog'
   gem 'guard-rubocop'
   gem 'seedbank'
   gem 'socksify'
