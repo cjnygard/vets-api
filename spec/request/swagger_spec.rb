@@ -525,6 +525,21 @@ RSpec.describe 'the API documentation', type: %i[apivore request], order: :defin
         end
       end
 
+      context 'with a loa1 user' do
+        let(:mhv_user) { build(:user, :loa1) }
+
+        it 'supports getting separation_locations' do
+          expect(subject).to validate(:get, '/v0/disability_compensation_form/separation_locations', 403, headers)
+        end
+      end
+
+      it 'supports getting separation_locations' do
+        expect(subject).to validate(:get, '/v0/disability_compensation_form/separation_locations', 401)
+        VCR.use_cassette('evss/reference_data/get_intake_sites') do
+          expect(subject).to validate(:get, '/v0/disability_compensation_form/separation_locations', 200, headers)
+        end
+      end
+
       it 'supports getting suggested conditions' do
         create(:disability_contention_arrhythmia)
         expect(subject).to validate(
@@ -642,6 +657,34 @@ RSpec.describe 'the API documentation', type: %i[apivore request], order: :defin
             200,
             headers.update('type' => 'compensation')
           )
+        end
+      end
+    end
+
+    describe 'MVI Users' do
+      context 'when user is correct' do
+        let(:mhv_user) { build(:user_with_no_ids) }
+
+        it 'fails when invalid form id is passed' do
+          expect(subject).to validate(:post, '/v0/mvi_users/{id}', 403, headers.merge('id' => '12-1234'))
+        end
+        it 'when correct form id is passed, it supports creating mvi user' do
+          VCR.use_cassette('mvi/add_person/add_person_success') do
+            VCR.use_cassette('mvi/find_candidate/orch_search_with_attributes') do
+              expect(subject).to validate(:post, '/v0/mvi_users/{id}', 200, headers.merge('id' => '21-0966'))
+            end
+          end
+        end
+      end
+
+      it 'fails when no user information is passed' do
+        expect(subject).to validate(:post, '/v0/mvi_users/{id}', 401, 'id' => '21-0966')
+      end
+      context 'when user is missing birls only' do
+        let(:mhv_user) { build(:user_with_no_birls_id) }
+
+        it 'fails with 422' do
+          expect(subject).to validate(:post, '/v0/mvi_users/{id}', 422, headers.merge('id' => '21-0966'))
         end
       end
     end
